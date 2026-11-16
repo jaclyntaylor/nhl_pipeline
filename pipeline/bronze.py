@@ -6,9 +6,9 @@ and save it exactly as received, one JSON record per line, partitioned by
 the time we LOADED it.
 """
 
-import config
-import utils
-import bronze_utils
+import pipeline.config as config
+import pipeline.utils as utils
+import pipeline.bronze_utils as bronze_utils
 
 log = utils.get_logger("bronze")
 

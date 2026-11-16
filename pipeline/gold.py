@@ -8,8 +8,8 @@ every run simply REBUILDS the last GOLD_REBUILD_DAYS days from Silver and
 overwrites those day partitions. Older days never change.
 """
 
-import utils
-import gold_utils
+import pipeline.utils as utils
+import pipeline.gold_utils as gold_utils
 
 log = utils.get_logger("gold")
 

@@ -24,20 +24,25 @@ TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 ### BRONZE CONFIG ############################################################
 
-USGS_URL = "https://earthquake.usgs.gov/fdsnws/event/1/query"
-BRONZE_PATH = "bronze/usgs"
-BRONZE_WATERMARK = "usgs_to_bronze"
-FIRST_RUN_LOOKBACK_HOURS = 2        # no watermark yet? look back this far
+NHL_URL = "https://api.nhle.com/stats/rest/en/skater/summary"
+BRONZE_PATH = "bronze/nhl"
+BRONZE_WATERMARK = "nhl_to_bronze"
+FIRST_RUN_LOOKBACK_DAYS = 7         # no watermark yet? look back this many days
+OVERLAP_DAYS = 1                    # re-pull the previous day to catch late games / stat fixes
+PAGE_SIZE = 100                     # rows per API page
+GAME_TYPE_ID = 2                    # 2 = regular season, 3 = playoffs
+HTTP_ATTEMPTS = 3                   # tries per page before failing the run
 
 
 ### SILVER CONFIG ############################################################
 
-SILVER_PATH = "silver/earthquakes"
+SILVER_PATH = "silver/skater_games"
 SILVER_WATERMARK = "bronze_to_silver"
+SILVER_KEY = ["gameId", "playerId"] # one row per skater per game; newest load_ts wins
 
 
 ### GOLD CONFIG ##############################################################
 
 GOLD_PATH = "gold"
-GOLD_TABLES = ["events", "hourly_summary", "region_daily", "alerts"]
-GOLD_REBUILD_DAYS = 3               # Gold rebuilds the last N days every run
+GOLD_TABLES = ["skater_games", "player_form", "opponent_vs_position", "team_daily"]
+GOLD_REBUILD_DAYS = 3               # Gold rebuilds the last N days every run       # Gold rebuilds the last N days every run

@@ -2,7 +2,8 @@
 utils.py
 Generic helpers used by every layer: logging, lake connection, time,
 watermarks, reading and writing files in the lake, and the run wrapper.
-Nothing in here knows about earthquakes.
+Nothing in here knows about hockey; all NHL-specific code lives in the
+*_utils.py files for each layer.
 """
 
 import json
@@ -28,7 +29,7 @@ def get_logger(name):
 
 # ---------- Lake connection ----------
 def get_fs():
-    """Filesystem object for the data lake. Paths look like 'bronze/usgs/file.jsonl'."""
+    """Filesystem object for the data lake. Paths look like 'bronze/nhl/file.jsonl'."""
     return AzureBlobFileSystem(
         account_name=config.STORAGE_ACCOUNT,
         account_key=config.STORAGE_KEY,
@@ -69,7 +70,8 @@ def write_watermark(fs, name, value):
 
 # ---------- Reading and writing the lake ----------
 def write_jsonl(fs, path, records):
-    """Write a list of dicts as JSON Lines (one record per line)."""
+    """Write a list of dicts as JSON Lines (one record per line).
+    An empty list writes an empty file (e.g. a run during the All-Star break)."""
     with fs.open(path, "w") as f:
         for record in records:
             f.write(json.dumps(record) + "\n")
@@ -93,9 +95,10 @@ def read_parquet(fs, path):
 
 def read_parquet_folder(fs, pattern):
     """Read every parquet file matching a glob pattern into one DataFrame.
-    Returns an empty DataFrame if nothing matches."""
+    Returns an empty DataFrame if nothing matches (e.g. a day with no games).
+    ignore_index renumbers rows 0..n-1 so rows from different files never share an index."""
     frames = [read_parquet(fs, p) for p in fs.glob(pattern)]
-    return pd.concat(frames) if frames else pd.DataFrame()
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
 
 def write_csv(fs, path, df):
