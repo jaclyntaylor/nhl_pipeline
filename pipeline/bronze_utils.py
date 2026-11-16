@@ -9,8 +9,8 @@ from datetime import timedelta
 
 import requests
 
-import pipeline.config as config
-import pipeline.utils as utils
+import config
+import utils
 
 log = utils.get_logger("bronze")
 

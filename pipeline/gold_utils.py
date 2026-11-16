@@ -14,8 +14,8 @@ from datetime import timedelta
 
 import pandas as pd
 
-import pipeline.config as config
-import pipeline.utils as utils
+import config
+import utils
 
 log = utils.get_logger("gold")
 
@@ -29,9 +29,18 @@ GAME_COLUMNS = [
 ]
 
 
-def days_to_rebuild():
+def days_to_rebuild(fs):
     """Today and the previous GOLD_REBUILD_DAYS-1 days, as 'YYYY-MM-DD' strings.
-    Three days covers the one-day Bronze overlap plus late stat corrections."""
+    Three days covers the one-day Bronze overlap plus late stat corrections.
+
+    Exception: if Gold has no skater_games yet (first run, or after you delete
+    Gold to rebuild it), build every day Silver has. Otherwise player_form's
+    season totals would only ever contain games from the first 3 days onward."""
+    if not fs.glob(f"{config.GOLD_PATH}/skater_games/game_date=*"):
+        days = sorted(p.split("game_date=")[1][:10]
+                      for p in fs.glob(f"{config.SILVER_PATH}/game_date=*"))
+        log.info("Gold is empty: backfilling all %d Silver days", len(days))
+        return days
     today = utils.now_utc().date()
     days = [(today - timedelta(days=i)).strftime("%Y-%m-%d") for i in range(config.GOLD_REBUILD_DAYS)]
     log.info("Rebuilding Gold for %s", days)
@@ -40,12 +49,12 @@ def days_to_rebuild():
 
 def read_silver(fs, days):
     """Every Silver partition for the given days, as one DataFrame.
-    Unlike earthquakes, the NHL has days with no games (off nights, holidays,
-    All-Star break), so a missing partition is normal and is skipped."""
+    The NHL has days with no games (off nights, holidays, All-Star break),
+    so a missing partition is normal and is skipped."""
     frames = []
     for day in days:
         df = utils.read_parquet_folder(fs, f"{config.SILVER_PATH}/game_date={day}/*.parquet")
-        if df is not None and len(df):
+        if not df.empty:
             df["game_date"] = day                      # partition value, in case it was dropped from the file
             frames.append(df)
     silver = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=GAME_COLUMNS)
@@ -114,6 +123,10 @@ def build_player_form(fs):
     Gold reads only the last GOLD_REBUILD_DAYS of Silver. The table is small
     (~one row per skater), so it is written as one file and fully replaced."""
     games = utils.read_parquet_folder(fs, f"{config.GOLD_PATH}/skater_games/game_date=*/*.parquet")
+    if games.empty:                                    # very first runs, before any game is in Gold
+        log.info("No skater_games in Gold yet, skipping player_form")
+        return
+    games = games.reset_index(drop=True)
     games["game_date"] = pd.to_datetime(games["game_date"])
     latest = games["game_date"].max()
     recent = games[games["game_date"] > latest - pd.Timedelta(days=config.FORM_DAYS)]
@@ -156,5 +169,7 @@ def export_csvs(fs):
         log.info("Exported %d rows to %s", len(full), path)
 
     form = utils.read_parquet_folder(fs, f"{config.GOLD_PATH}/player_form/*.parquet")
+    if form.empty:
+        return
     utils.write_csv(fs, f"{config.GOLD_PATH}/tableau/player_form.csv", form)
     log.info("Exported %d rows to %s/tableau/player_form.csv", len(form), config.GOLD_PATH)

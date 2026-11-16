@@ -38,11 +38,13 @@ HTTP_ATTEMPTS = 3                   # tries per page before failing the run
 
 SILVER_PATH = "silver/skater_games"
 SILVER_WATERMARK = "bronze_to_silver"
-SILVER_KEY = ["gameId", "playerId"] # one row per skater per game; newest load_ts wins
+SILVER_KEY = ["game_id", "player_id"]   # one row per skater per game; newest load_ts wins (names after Silver's rename)
 
 
 ### GOLD CONFIG ##############################################################
 
 GOLD_PATH = "gold"
-GOLD_TABLES = ["skater_games", "player_form", "opponent_vs_position", "team_daily"]
-GOLD_REBUILD_DAYS = 3               # Gold rebuilds the last N days every run       # Gold rebuilds the last N days every run
+GOLD_TABLES = ["skater_games", "team_daily", "opponent_vs_position"]   # daily tables, partitioned by game_date
+GOLD_REBUILD_DAYS = 3               # Gold rebuilds the last N days every run
+FORM_DAYS = 7                       # "recent form" window for the player_form snapshot table
+FORM_MIN_GAMES = 5                  # leave out players with too few games to judge

@@ -6,9 +6,9 @@ stat lines (one row per player per game), partitioned by the date the
 game was PLAYED. Touched partitions are overwritten.
 """
 
-import pipeline.config as config
-import pipeline.utils as utils
-import pipeline.silver_utils as silver_utils
+import config
+import utils
+import silver_utils
 
 log = utils.get_logger("silver")
 
@@ -32,3 +32,7 @@ def main():
     newest = raw["load_ts"].max().to_pydatetime()
     utils.write_watermark(fs, config.SILVER_WATERMARK, newest)   # 5. only after step 4 worked
     log.info("Watermark moved to %s. Silver done.", newest)
+
+
+if __name__ == "__main__":
+    utils.run(main, "silver")

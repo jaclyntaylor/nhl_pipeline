@@ -1,14 +1,14 @@
 """
 bronze.py  (Layer 1 of 3)
 
-Pull every earthquake USGS added or changed since the last successful run
-and save it exactly as received, one JSON record per line, partitioned by
-the time we LOADED it.
+Pull every NHL skater-game stat line since the last successful run
+(minus a one-day overlap) and save it exactly as received, one JSON
+record per line, partitioned by the time we LOADED it.
 """
 
-import pipeline.config as config
-import pipeline.utils as utils
-import pipeline.bronze_utils as bronze_utils
+import config
+import utils
+import bronze_utils
 
 log = utils.get_logger("bronze")
 
@@ -18,7 +18,7 @@ def main():
 
     start = bronze_utils.get_start_time(fs)          # 1. where did the last run stop?
     run_ts = utils.now_utc()                          # 2. where will this run stop?
-    events = bronze_utils.fetch_events(start)         # 3. call USGS
+    events = bronze_utils.fetch_events(start)         # 3. call the NHL stats API (all pages)
     bronze_utils.write_events(fs, events, run_ts)     # 4. write this run's partition
     utils.write_watermark(fs, config.BRONZE_WATERMARK, run_ts)   # 5. only after step 4 worked
 

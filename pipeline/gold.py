@@ -1,15 +1,17 @@
 """
 gold.py  (Layer 3 of 3)
 
-Build the tables Tableau reads, partitioned by event_date.
+Build the tables Tableau reads, partitioned by game_date.
 
-Gold has no watermark. USGS keeps revising earthquakes for a few days, so
-every run simply REBUILDS the last GOLD_REBUILD_DAYS days from Silver and
-overwrites those day partitions. Older days never change.
+Gold has no watermark. Bronze re-pulls the previous day and the NHL can
+correct stats after a game, so every run simply REBUILDS the last
+GOLD_REBUILD_DAYS days from Silver and overwrites those day partitions.
+Older days never change. player_form (season vs. last 7 days) is then
+rebuilt from all of gold/skater_games.
 """
 
-import pipeline.utils as utils
-import pipeline.gold_utils as gold_utils
+import utils
+import gold_utils
 
 log = utils.get_logger("gold")
 
@@ -17,16 +19,17 @@ log = utils.get_logger("gold")
 def main():
     fs = utils.get_fs()
 
-    days = gold_utils.days_to_rebuild()                # 1. which days to rebuild
+    days = gold_utils.days_to_rebuild(fs)              # 1. which days to rebuild (all of Silver on the first run)
     silver = gold_utils.read_silver(fs, days)          # 2. read those days from Silver
     if silver.empty:
         log.info("No Silver data for these days. Gold done.")
         return
 
-    for day, s in silver.groupby("event_date"):        # 3. build + overwrite each day
+    for day, s in silver.groupby("game_date"):         # 3. build + overwrite each game day
         gold_utils.write_day(fs, day, s)
 
-    gold_utils.export_csvs(fs)                         # 4. flat CSVs for Tableau
+    gold_utils.build_player_form(fs)                   # 4. season vs. recent form, from Gold
+    gold_utils.export_csvs(fs)                         # 5. flat CSVs for Tableau
     log.info("Gold done.")
 
 
