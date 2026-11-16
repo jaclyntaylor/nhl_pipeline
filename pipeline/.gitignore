@@ -1,0 +1,3 @@
+# Environment variables and local secrets
+.env
+pipeline/.env
