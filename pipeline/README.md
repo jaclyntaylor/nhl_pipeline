@@ -68,7 +68,7 @@ pipeline/
   silver.py          entry point, step by step
   gold.py            entry point, step by step
 requirements.txt
-.env.example         template for the two secrets
+.env
 ```
 
 ## Run it on your laptop
