@@ -1,6 +1,6 @@
 # nhl_medallion_pipeline
 
-A Medallion (Bronze -> Silver -> Gold) data pipeline in plain Python, reading the NHL Stats API (skater game logs) into an Azure Data Lake (ADLS Gen2), ending in a Tableau dashboard. Built for DATA 5330 / 6330 at Utah State University.
+A Medallion (Bronze -> Silver -> Gold) data pipeline in plain Python, reading the NHL Stats API (skater game logs) into an Azure Data Lake (ADLS Gen2), ending in a dashboard to display the data. 
 
 ## Stakeholder
 
