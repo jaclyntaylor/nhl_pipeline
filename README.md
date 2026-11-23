@@ -3,7 +3,7 @@
 A Medallion (Bronze -> Silver -> Gold) data pipeline in plain Python, reading the NHL Stats API (skater game logs) into an Azure Data Lake (ADLS Gen2), ending in a dashboard to display the data. 
 
 ## Stakeholder
-
+###***************** CHECK THIS (when finished with dashboard)!!!! *****************************
 A fantasy hockey manager deciding which skaters to start or pick up each week. The dashboard answers:
 
 1. Which skaters are hot or cold: points per game over the last 7 days compared with their season average?
@@ -11,10 +11,10 @@ A fantasy hockey manager deciding which skaters to start or pick up each week. T
 3. How do ice time and power-play usage trend for a player or team, and do they move with points?
 
 ## Data source
-
+##link to api
 `https://api.nhle.com/stats/rest/en/skater/summary?isAggregate=false&isGame=true`
 
-* One row per skater per game, about 30 fields (goals, assists, shots, ice time, power-play points, faceoff %, team, opponent, position, game date, ...)
+* One row per skater per game, with around 30 fields (goals, assists, shots, ice time, power-play points, faceoff %, team, opponent, position, game date, ...)
 * Public, no key, no signup
 * Filtered with `cayenneExp=gameDate>="YYYY-MM-DD"`; results come in pages of 100 (`start`, `limit`, sorted by `gameId`, `playerId`)
 
